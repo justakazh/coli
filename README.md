@@ -158,7 +158,7 @@ COLI is powered by:
 
 ## 💻Working Method
 
-<image > 
+<img src="https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/2025-08-10_13-18.png" />
 
 ## ⚡ Quick Start Example
 
