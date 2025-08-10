@@ -1,11 +1,13 @@
 
 # COLI - Command Orchestration & Logic Interface
 
-<p>
-  <img src="https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo.png" width="250"/>
-  <img src="https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo-2.png" width="250"/>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo-2.png" width="300"/>
 </p>
 
+    
 ---
 
 ## Introduction
