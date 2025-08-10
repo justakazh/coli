@@ -54,7 +54,7 @@ With COLI, you can:
 ## ⚙️ Installation
 
 ```bash
-git clone https://github.com/justakazh/coli
+git clone --recurse-submodules https://github.com/justakazh/coli
 cd coli/
 apt install composer php-gd php-dom php-xml php-sqlite3
 composer install
