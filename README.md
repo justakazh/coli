@@ -1,8 +1,8 @@
 
 # COLI - Command Orchestration & Logic Interface
 
-![COLI Logo](coli-logo.png)
-
+![COLI Logo](https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo.png)
+![COLI Logo](https://raw.githubusercontent.com/justakazh/coli/refs/heads/main/public/assets/images/coli-logo-2.png)
 ---
 
 ## Introduction
@@ -25,7 +25,14 @@ With COLI, you can:
 
 > *Below is a short preview video demonstrating COLI's core features and workflow:*
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QW4nusOm_GI?si=xzr8tMblOOeVq-o1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+[![Watch the video](https://img.youtube.com/vi/QW4nusOm_GI/maxresdefault.jpg)](https://www.youtube.com/watch?v=QW4nusOm_GI)
+
+
+
+
+
+
 
 **Main Features:**
 - **Scope Management** – Add, edit, and remove target scopes.
@@ -35,7 +42,7 @@ With COLI, you can:
 - **Workflow Builder** – Create task relationships visually with node-based design.
 - **Interactive Terminal** – Fully functional web-based terminal (TTY).
 - **File Manager** – Upload, download, edit, and delete files in one place.
-- And others!
+- And more!
 
 ---
 
