@@ -1,0 +1,28 @@
+{
+    "name": "Simple Scanning",
+    "description": "Perform Subdomain finder, web server check, and port/service check",
+    "tasks": [
+        {
+            "name": "Subdomain Finder",
+            "description": "Perform Subdomain Finder using Subfinder",
+            "result": "subdomains.txt",
+            "command": "subfinder -d {target} -o {result}",
+            "tasks": [
+                {
+                    "name": "HTTP Check",
+                    "description": "Looking for Web Server using HTTPX",
+                    "result": "web_server.txt",
+                    "command": "httpx -l {parent_result} -o {result}",
+                    "tasks": []
+                }
+            ]
+        },
+        {
+            "name": "Port Scanning",
+            "description": "Perform Port Scanning using NMAP",
+            "result": "services.txt",
+            "command": "nmap -sV {target} -oN {result}",
+            "tasks": []
+        }
+    ]
+}

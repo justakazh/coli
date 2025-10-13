@@ -1,0 +1,155 @@
+:root {
+    --bg-color: #f8f9fa;       /* background halaman */
+    --text-color: #212529;     /* warna teks utama */
+    --card-bg: #ffffff;        /* warna background card/chat */
+    --accent: #0d6efd;         /* warna aksen (bootstrap primary) */
+    --border-color: #dee2e6;   /* warna border */
+
+
+    --bs-primary:   #EEEEEE;
+    --bs-success:   #30d158;
+    --bs-danger:    #ff453a;
+    --bs-warning:   #ffd60a;
+    --bs-info:      #5ac8fa;
+    --bs-secondary: #8e8e93;
+    --bs-dark:      #1c1c1e;
+    --bs-light:     #f2f2f7;
+
+    
+    --bg-color: #050505;
+    --text-color: #ececf1;
+    --font-main: "Ubuntu", -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Helvetica, Arial, sans-serif,
+                 "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --bs-primary-hover: #e0e0e0;
+    --bs-primary-active: #d0d0d0;
+    --bs-success-hover: #29b548;
+    --bs-success-active: #24a141;
+    --bs-danger-hover: #ff3b30;
+    --bs-danger-active: #e03129;
+    --bs-warning-hover: #ffd10a;
+    --bs-warning-active: #e0c109;
+    --bs-info-hover: #4ac8fa;
+    --bs-info-active: #3fa8d6;
+    --bs-secondary-hover: #7d7d82;
+    --bs-secondary-active: #6d6d72;
+    --bs-dark-hover: #1b1b1e;
+
+
+    
+  }
+
+  body {
+    font-family: var(--font-main) !important;
+    font-feature-settings: "ss01" !important;
+    -webkit-font-smoothing: antialiased;
+    background-color: var(--bg-color);
+    color: var(--text-color) !important;
+}
+
+
+/* ===== Button Custom States ===== */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: var(--bs-dark) !important;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--bs-primary-hover);
+    border-color: var(--bs-primary-hover);
+    color: var(--bs-dark) !important;
+}
+.btn-primary:active,
+.btn-primary:focus:active {
+    background-color: var(--bs-primary-active) !important;
+    border-color: var(--bs-primary-active) !important;
+}
+
+.btn-success {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+.btn-success:hover,
+.btn-success:focus {
+    background-color: var(--bs-success-hover);
+    border-color: var(--bs-success-hover);
+}
+.btn-success:active,
+.btn-success:focus:active {
+    background-color: var(--bs-success-active) !important;
+    border-color: var(--bs-success-active) !important;
+}
+
+.btn-danger {
+    background-color: var(--bs-danger);
+    border-color: var(--bs-danger);
+}
+.btn-danger:hover,
+.btn-danger:focus {
+    background-color: var(--bs-danger-hover);
+    border-color: var(--bs-danger-hover);
+}
+.btn-danger:active,
+.btn-danger:focus:active {
+    background-color: var(--bs-danger-active) !important;
+    border-color: var(--bs-danger-active) !important;
+}
+
+.btn-warning {
+    background-color: var(--bs-warning);
+    border-color: var(--bs-warning);
+    color: #212529;
+}
+.btn-warning:hover,
+.btn-warning:focus {
+    background-color: var(--bs-warning-hover);
+    border-color: var(--bs-warning-hover);
+}
+.btn-warning:active,
+.btn-warning:focus:active {
+    background-color: var(--bs-warning-active) !important;
+    border-color: var(--bs-warning-active) !important;
+}
+
+.btn-info {
+    background-color: var(--bs-info);
+    border-color: var(--bs-info);
+    color: #212529;
+}
+.btn-info:hover,
+.btn-info:focus {
+    background-color: var(--bs-info-hover);
+    border-color: var(--bs-info-hover);
+}
+.btn-info:active,
+.btn-info:focus:active {
+    background-color: var(--bs-info-active) !important;
+    border-color: var(--bs-info-active) !important;
+}
+  
+.btn-outline-orange {
+    color: #fd7e14;
+    border-color: #fd7e14;
+}
+.btn-outline-orange:hover,
+.btn-outline-orange:focus {
+    background-color: #fd7e14;
+    color: #fff;
+    border-color: #fd7e14;
+}
+
+
+
+
+  /* 🌓 Optional Dark Mode */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #1c1c1e;
+      --text-color: #f2f2f7;
+      --card-bg: #2c2c2e;
+      --border-color: #3a3a3c;
+    }
+  }
+
+
