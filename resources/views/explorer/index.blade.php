@@ -1,6 +1,7 @@
 @extends('templates.v1')
 @section('content')
 
+@section("title", "Explorer")
 
 
 <div class="container-fluid" >

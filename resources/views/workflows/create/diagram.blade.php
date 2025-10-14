@@ -349,12 +349,9 @@
         <h6>Task Command Placeholders</h6>
         <p>Within each command, you can use the following placeholders:</p>
         <ul>
-          <li><code>{target}</code>: Target value to scan or process.</li>
-          <li><code>{name}</code>: Task name.</li>
-          <li><code>{result}</code>: Result file name/path of this task.</li>
-          <li><code>{output_path}</code>: Output folder of scan.</li>
-          <li><code>{parent_name}</code>: Name of parent task (if any).</li>
-          <li><code>{parent_result}</code>: Result file of parent task (if any).</li>
+          <li><code><?= "{{target}}" ?></code>: Target value to scan or process.</li>
+          <li><code><?= "{{name}}" ?></code>: Task name.</li>
+          <li><code><?= "{{output}}" ?></code>: Output folder of scan.</li>
         </ul>
       </div>
       <div class="modal-footer">
@@ -406,8 +403,10 @@ document.addEventListener("DOMContentLoaded", function() {
           <div class="invalid-feedback" id="taskCommand_invalid_feedback">Command is required.</div>
         </div>
         <div class="mb-3">
-          <label for="result_file" class="form-label">Result File Name</label>
-          <input type="text" class="form-control" id="result_file" name="result_file">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="wait" name="wait" value="true">
+            <label class="form-check-label" for="wait">Wait for all parent tasks to finish before executing</label>
+          </div>
         </div>
         <!-- wait_all removed -->
       </div>
@@ -469,11 +468,11 @@ let cmTaskCommand = null;
 
 // Remove wait_all from task node html
 function getTaskNodeHtml(name, nodeId = null) {
-    return `<div class="task-node" style="color: #fff; padding: 18px 14px 40px 14px;  position: relative; min-width: 180px; min-height: 78px; box-shadow: 0 2px 12px 0 rgba(30,40,60,.16);">
+    return `<div class="task-node" style="color: #fff; padding: 18px 14px 40px 14px; position: relative; min-width: 180px; min-height: 78px; box-shadow: 0 2px 12px 0 rgba(30,40,60,.16);">
         <div style="text-align: center; margin: 0 0 16px 0;">
             <span style="font-size: 1.1rem; display: inline-flex; align-items: center; gap: 0.30em;">
                 <i class="fas fa-terminal me-1" style="color: #43b993;"></i>
-                <strong class="text-truncate" style="max-width: 135px;display:inline-block;vertical-align:middle;">${name || '<em style=&quot;color:#aaa;font-weight:400;&quot;>Task Name</em>'}</strong>
+                <b style="display:inline;vertical-align:middle;">${name || '<em style=&quot;color:#aaa;font-weight:400;&quot;>Task Name</em>'}</b>
             </span>
         </div>
         <div class="node-action-btns d-flex gap-2" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);">
@@ -708,8 +707,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('taskNodeId').value = nodeId;
             document.getElementById('taskName').value = nodeData.data.name || '';
             document.getElementById('taskDescription').value = nodeData.data.description || '';
-            document.getElementById('result_file').value = nodeData.data.result || '';
             setTaskCommandValue(nodeData.data.command || '');
+            document.getElementById('wait').checked = !!nodeData.data.wait;
             selectedNodeId = nodeId;
             document.getElementById('taskModalLabel').textContent = 'Edit Task';
             hideInvalid(document.getElementById('taskName'));
@@ -782,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let description = document.getElementById('taskDescription').value.trim();
-        let result = document.getElementById('result_file').value.trim();
+        let wait = document.getElementById('wait').checked ? true : false;
         let command = getTaskCommandValue().trim(); // use codemirror value
         let commandTextarea = document.getElementById('taskCommand');
 
@@ -811,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Edit existing node
             let node = editor.getNodeFromId(nodeId);
             if(node) {
-                editor.updateNodeDataFromId(nodeId, {name, description, command, result});
+                editor.updateNodeDataFromId(nodeId, {name, description, command,status: "", wait: wait, stdout: "", error: "", pid: ""});
                 let nodeElem = document.getElementById('node-' + nodeId);
                 if(nodeElem) {
                     let contentElem = nodeElem.querySelector('.drawflow_content_node');
@@ -822,8 +821,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateDiagramData(editor);
             }
         } else {
-            // Add new node, don't include wait_all
-            let newId = editor.addNode('task', 1, 1, 100, 100, 'task', {name, description, command, result}, html);
+            // Add new node
+            let newId = editor.addNode('task', 1, 1, 100, 100, 'task', {name, description, command,status: "", wait: wait, stdout: "", error: "", pid: ""}, html);
             setTimeout(() => {
                 let nodeElem = document.getElementById('node-' + newId);
                 if(nodeElem) {
@@ -845,7 +844,15 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('diagram_data');
     });
 
-    
+    // Double click node to edit (edit mode)
+    drawflowElem.addEventListener('dblclick', function(e) {
+        if (isLocked) return;
+        let node = e.target.closest('.drawflow-node');
+        if (node) {
+            let id = node.id.replace('node-', '');
+            openEditTaskModal(id);
+        }
+    });
 
 
 });

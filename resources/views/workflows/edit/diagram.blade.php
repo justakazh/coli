@@ -1,14 +1,13 @@
 @extends('templates.v1')
 @section('content')
 @section('title', 'Workflows - Edit Diagram')
+
 @push('styles')
 <style>
-
 :root {
   --dfBackgroundColor: #ffffff;
   --dfBackgroundSize: 0px;
   --dfBackgroundImage: none;
-
   --dfNodeType: flex;
   --dfNodeTypeFloat: none;
   --dfNodeBackgroundColor: #212529;
@@ -25,22 +24,17 @@
   --dfNodeBoxShadowBR: 15px;
   --dfNodeBoxShadowS: 1px;
   --dfNodeBoxShadowColor: #1B1B1D;
-
   --dfNodeHoverBackgroundColor: #212529;
   --dfNodeHoverTextColor: #ffffff;
   --dfNodeHoverBorderSize: 1px;
   --dfNodeHoverBorderColor: #d0d0d0;
   --dfNodeHoverBorderRadius: 4px;
-
-
   --dfNodeSelectedBackgroundColor: #212529;
   --dfNodeSelectedTextColor: #ffffff;
   --dfNodeTextColor: #ffffff;
   --dfNodeSelectedBorderSize: 1px;
   --dfNodeSelectedBorderColor: #d0d0d0;
   --dfNodeSelectedBorderRadius: 4px;
-
-
   --dfInputBackgroundColor: #ffffff;
   --dfInputBorderSize: 1px;
   --dfInputBorderColor: #1B1B1D;
@@ -48,12 +42,10 @@
   --dfInputLeft: -27px;
   --dfInputHeight: 20px;
   --dfInputWidth: 20px;
-
   --dfInputHoverBackgroundColor: #ffffff;
   --dfInputHoverBorderSize: 1px;
   --dfInputHoverBorderColor: #1B1B1D;
   --dfInputHoverBorderRadius: 50px;
-
   --dfOutputBackgroundColor: #ffffff;
   --dfOutputBorderSize: 1px;
   --dfOutputBorderColor: #1B1B1D;
@@ -61,25 +53,20 @@
   --dfOutputRight: -3px;
   --dfOutputHeight: 20px;
   --dfOutputWidth: 20px;
-
   --dfOutputHoverBackgroundColor: #ffffff;
   --dfOutputHoverBorderSize: 1px;
   --dfOutputHoverBorderColor: #1B1B1D;
   --dfOutputHoverBorderRadius: 50px;
-
   --dfLineWidth: 5px;
   --dfLineColor: #4682b4;
   --dfLineHoverColor: #4682b4;
   --dfLineSelectedColor: #43b993;
-
   --dfRerouteBorderWidth: 1px;
   --dfRerouteBorderColor: #1B1B1D;
   --dfRerouteBackgroundColor: #ffffff;
-
   --dfRerouteHoverBorderWidth: 1px;
   --dfRerouteHoverBorderColor: #1B1B1D;
   --dfRerouteHoverBackgroundColor: #ffffff;
-
   --dfDeleteDisplay: block;
   --dfDeleteColor: #ffffff;
   --dfDeleteBackgroundColor: #1B1B1D;
@@ -87,15 +74,12 @@
   --dfDeleteBorderColor: #ffffff;
   --dfDeleteBorderRadius: 50px;
   --dfDeleteTop: -15px;
-
   --dfDeleteHoverColor: #1B1B1D;
   --dfDeleteHoverBackgroundColor: #ffffff;
   --dfDeleteHoverBorderSize: 1px;
   --dfDeleteHoverBorderColor: #1B1B1D;
   --dfDeleteHoverBorderRadius: 50px;
-
 }
-
 
 .drawflow .drawflow-node {
   display: var(--dfNodeType);
@@ -208,66 +192,67 @@
   border-radius: var(--dfDeleteHoverBorderRadius);
 }
 
-    #drawflow {
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-        min-height: calc(100vh - 195px);
-        display: flex;
-        flex-direction: column;
-        background-color: #212529;
-        background-image: 
-            radial-gradient(#444 1px, transparent 1px),
-            radial-gradient(#444 1px, transparent 1px);
-        background-size: 20px 20px;
-        background-position: 0 0, 10px 10px;
-        position: relative;
-    }
-    .card {
-        height: 100%;
-    }
-    .card > #drawflow {
-        flex: 1 1 auto;
-        height: 100%;
-    }
-    .drawflow-floating-buttons {
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
-        z-index: 10;
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        align-items: center;
-    }
-    /* Tambahan untuk tampilan CodeMirror dalam modal */
-    .CodeMirror {
-        width: 100% !important;
-        min-height: 100px;
-        max-height: 300px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
-        font-family: 'Fira Mono', 'Roboto Mono', monospace;
-    }
-    .cm-s-dracula.CodeMirror, .cm-s-dracula {
-        border: var(--bs-border-width) solid var(--bs-border-color);
-    }
+#drawflow {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    min-height: calc(100vh - 195px);
+    display: flex;
+    flex-direction: column;
+    background-color: #212529;
+    background-image: 
+        radial-gradient(#444 1px, transparent 1px),
+        radial-gradient(#444 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    position: relative;
+}
+.card {
+    height: 100%;
+}
+.card > #drawflow {
+    flex: 1 1 auto;
+    height: 100%;
+}
+.drawflow-floating-buttons {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+/* Tambahan untuk tampilan CodeMirror dalam modal */
+.CodeMirror {
+    width: 100% !important;
+    min-height: 100px;
+    max-height: 300px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: 'Fira Mono', 'Roboto Mono', monospace;
+}
+.cm-s-dracula.CodeMirror, .cm-s-dracula {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+}
 
-    .cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters{
-        background-color:  #212529 !important;
-    }
+.cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters{
+    background-color:  #212529 !important;
+}
 
-    @media (max-width: 576px) {
-        .drawflow-btn-group {
-        flex-direction: column !important;
-        gap: 8px !important;
-        align-items: stretch !important;
-        }
-        .drawflow-btn-group .btn {
-        width: 100%;
-        }
+
+@media (max-width: 576px) {
+    .drawflow-btn-group {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
     }
+    .drawflow-btn-group .btn {
+    width: 100%;
+    }
+}
 </style>
 @endpush
 
@@ -311,7 +296,7 @@
                     </button>
                     <button type="button" class="btn btn-primary floating-save-btn" data-bs-toggle="modal" data-bs-target="#modalSave">
                         <i class="fas fa-save"></i>
-                        <span class="d-none d-sm-inline">Save</span>
+                        <span class="d-none d-sm-inline">Save Changes</span>
                     </button>
                 </div>
             </div>
@@ -319,6 +304,43 @@
     </div>
 </div>
 
+<!-- Modal Help Drawflow -->
+<div class="modal fade" id="helpDrawflowModal" tabindex="-1" aria-labelledby="helpDrawflowModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="helpDrawflowModalLabel"><i class="fas fa-question-circle me-2"></i> Drawflow Help</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h5>How to Use Workflow Diagram Editor</h5>
+        <ul>
+          <li><b>Add Task:</b> Klik <span class="badge bg-secondary"><i class="fas fa-plus"></i> Add Task</span> untuk menambah task baru.</li>
+          <li><b>Edit Task:</b> Klik dua kali (double-click) node untuk mengedit informasinya.</li>
+          <li><b>Connect Tasks:</b> Drag dari port satu node ke port node lain untuk membuat relasi.</li>
+          <li><b>Delete Node:</b> Pilih node lalu tekan <kbd>Del</kbd>/<kbd>Backspace</kbd>, atau klik kanan dan pilih hapus.</li>
+          <li><b>Save Changes:</b> Klik <span class="badge bg-secondary"><i class="fas fa-save"></i> Save Changes</span> untuk menyimpan perubahan workflow.</li>
+          <li><b>Lock Diagram:</b> Gunakan <span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Lock Drawflow</span> untuk mengunci agar tidak bisa diubah.</li>
+          <li><b>Drag & Zoom:</b> Anda bisa menggeser canvas dan zoom menggunakan scroll.</li>
+          <li><b>Detail Node:</b> Hover untuk info cepat. Double-click untuk edit detail lengkap.</li>
+        </ul>
+        <hr>
+        <h6>Task Command Placeholders</h6>
+        <p>Dalam command, Anda bisa menggunakan placeholder berikut:</p>
+        <ul>
+          <li><code><?= "{{target}}" ?></code>: Target value to scan or process.</li>
+          <li><code><?= "{{name}}" ?></code>: Task name.</li>
+          <li><code><?= "{{output}}" ?></code>: Output folder of scan.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -332,53 +354,14 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-
-<!-- Modal Help Drawflow -->
-<div class="modal fade" id="helpDrawflowModal" tabindex="-1" aria-labelledby="helpDrawflowModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="helpDrawflowModalLabel"><i class="fas fa-question-circle me-2"></i> Drawflow Help</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <h5>How to Use Workflow Diagram Builder</h5>
-        <ul>
-          <li><b>Add Task:</b> Click <span class="badge bg-secondary"><i class="fas fa-plus"></i> Add Task</span> to insert a new task node.</li>
-          <li><b>Edit Task:</b> Double-click a node to update its information.</li>
-          <li><b>Connect Tasks:</b> Drag from the port of one node to the port of another node to create a relationship (parent-to-child).</li>
-          <li><b>Delete Node:</b> Select a node and press <kbd>Del</kbd>/<kbd>Backspace</kbd>, or right-click and choose delete.</li>
-          <li><b>Save Workflow:</b> Click <span class="badge bg-secondary"><i class="fas fa-save"></i> Save</span> to store your workflow.</li>
-          <li><b>Lock Diagram:</b> Use <span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Lock Drawflow</span> to prevent changes.</li>
-          <li><b>Drag & Zoom:</b> You can pan the canvas (drag background) and zoom (scroll).</li>
-          <li><b>Node Details:</b> Hover over nodes for quick info. Double-click for full edit form.</li>
-        </ul>
-        <hr>
-        <h6>Task Command Placeholders</h6>
-        <p>Within each command, you can use the following placeholders:</p>
-        <ul>
-          <li><code>{target}</code>: Target value to scan or process.</li>
-          <li><code>{name}</code>: Task name.</li>
-          <li><code>{result}</code>: Result file name/path of this task.</li>
-          <li><code>{output_path}</code>: Output folder of scan.</li>
-          <li><code>{parent_name}</code>: Name of parent task (if any).</li>
-          <li><code>{parent_result}</code>: Result file of parent task (if any).</li>
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="fas fa-times me-1"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 <!-- Modal Add/Edit Task -->
 <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog">
     <form id="taskForm" class="modal-content" novalidate>
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="taskModalLabel"><i class="fas fa-tasks"></i> Edit Task</h1>
+        <h1 class="modal-title fs-5" id="taskModalLabel"><i class="fas fa-tasks"></i>
+          <span id="taskModalTitleText">Add Task</span>
+        </h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -394,49 +377,49 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
         <div class="mb-3">
           <label for="taskCommand" class="form-label">Command</label>
-          <!-- Note: textarea is hidden so it can be required but not interfere with focusability -->
           <textarea class="form-control d-none" id="taskCommand" name="taskCommand" required></textarea>
           <div id="codemirror-taskCommand"></div>
           <div class="invalid-feedback" id="taskCommand_invalid_feedback">Command is required.</div>
         </div>
         <div class="mb-3">
-          <label for="result_file" class="form-label">Result File Name</label>
-          <input type="text" class="form-control" id="result_file" name="result_file">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="wait" name="wait" value="true">
+            <label class="form-check-label" for="wait">Wait for all parent tasks to finish before executing</label>
+          </div>
         </div>
-        <!-- wait_all removed -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
           <i class="fas fa-times me-1"></i> Cancel
         </button>
         <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save me-1"></i> Update Task
+          <i class="fas fa-save me-1"></i> Save Task
         </button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Update Workflow -->
+<!-- Modal Save Workflow -->
 <div class="modal fade" id="modalSave" tabindex="-1" aria-labelledby="modalSaveLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="modalSaveLabel"><i class="fas fa-save"></i> Update Workflow</h1>
+        <h1 class="modal-title fs-5" id="modalSaveLabel"><i class="fas fa-save"></i> Save Workflow Changes</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form action="{{ route('workflows.update.diagram', $workflow->id) }}" method="POST" id="save-workflow-form">
+        <form action="{{ route('workflows.update.diagram', $data['workflow']->id) }}" method="POST" id="save-workflow-form">
           @csrf
           <input type="hidden" name="type" value="diagram">
-          <textarea class="form-control" id="diagram_data" name="diagram_data" style="display: none;" readonly>{{ old('diagram_data', $workflow->diagram_data ?? '') }}</textarea>
+          <textarea class="form-control" id="diagram_data" name="diagram_data" style="display: none;" readonly> {{ old('diagram_data', $data['workflow']->diagram_data) }}</textarea>
           <div class="mb-3">
             <label for="workflow-name" class="col-form-label">Workflow Name:</label>
-            <input type="text" class="form-control" id="workflow-name" name="workflow_name" required value="{{ old('workflow_name', $workflow->name ?? '') }}">
+            <input type="text" class="form-control" id="workflow-name" name="workflow_name" required value="{{ old('workflow_name', $data['workflow']->name) }}">
           </div>
           <div class="mb-3">
             <label for="workflow-description" class="col-form-label">Workflow Description:</label>
-            <textarea class="form-control" id="workflow-description" name="workflow_description" required>{{ old('workflow_description', $workflow->description ?? '') }}</textarea>
+            <textarea class="form-control" id="workflow-description" name="workflow_description" required>{{ old('workflow_description', $data['workflow']->description) }}</textarea>
           </div>
         </form>
       </div>
@@ -445,7 +428,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <i class="fas fa-times me-1"></i> Close
         </button>
         <button type="submit" form="save-workflow-form" class="btn btn-primary" id="btn-save-workflow">
-          <i class="fas fa-save me-1"></i> Update Workflow
+          <i class="fas fa-save me-1"></i> Save Changes
         </button>
       </div>
     </div>
@@ -461,13 +444,12 @@ let selectedNodeId = null;
 let isLocked = false;
 let cmTaskCommand = null;
 
-// Remove wait_all from task node html
 function getTaskNodeHtml(name, nodeId = null) {
-    return `<div class="task-node" style="color: #fff; padding: 18px 14px 40px 14px;  position: relative; min-width: 180px; min-height: 78px; box-shadow: 0 2px 12px 0 rgba(30,40,60,.16);">
+    return `<div class="task-node" style="color: #fff; padding: 18px 14px 40px 14px; position: relative; min-width: 180px; min-height: 78px; box-shadow: 0 2px 12px 0 rgba(30,40,60,.16);">
         <div style="text-align: center; margin: 0 0 16px 0;">
             <span style="font-size: 1.1rem; display: inline-flex; align-items: center; gap: 0.30em;">
                 <i class="fas fa-terminal me-1" style="color: #43b993;"></i>
-                <strong class="text-truncate" style="max-width: 135px;display:inline-block;vertical-align:middle;">${name || '<em style=&quot;color:#aaa;font-weight:400;&quot;>Task Name</em>'}</strong>
+                <b style="display:inline;vertical-align:middle;">${name || '<em style=&quot;color:#aaa;font-weight:400;&quot;>Task Name</em>'}</b>
             </span>
         </div>
         <div class="node-action-btns d-flex gap-2" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);">
@@ -480,27 +462,11 @@ function getTaskNodeHtml(name, nodeId = null) {
         </div>
     </div>`;
 }
-
 function updateDiagramData(editor){
   let diagramData = editor.export();
   document.getElementById('diagram_data').value = JSON.stringify(diagramData);
-  // simpan ke local storage untuk edit workflow
   localStorage.setItem('diagram_data', JSON.stringify(diagramData));
 }
-
-// Helper: safely loop drawflow nodes (guard .drawflow, .Home, .data exist)
-function safeForEachNode(diagramObj, callback) {
-    if (diagramObj && diagramObj.drawflow && diagramObj.drawflow.Home && diagramObj.drawflow.Home.data) {
-        for (const id in diagramObj.drawflow.Home.data) {
-            if (!Object.prototype.hasOwnProperty.call(diagramObj.drawflow.Home.data, id)) continue;
-            const node = diagramObj.drawflow.Home.data[id];
-            if (node && typeof node === 'object' && node.hasOwnProperty('data')) {
-                callback(id, node);
-            }
-        }
-    }
-}
-
 function setupCodeMirrorCommand() {
     if (cmTaskCommand) {
         cmTaskCommand.toTextArea();
@@ -554,9 +520,7 @@ function showCommandInvalid(msg) {
 function hideCommandInvalid() {
     document.getElementById('codemirror-taskCommand').classList.remove('is-invalid');
 }
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Drawflow init
     const drawflowElem = document.getElementById('drawflow');
     editor = new Drawflow(drawflowElem);
     editor.reroute = true;
@@ -572,148 +536,103 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     taskModalElem.addEventListener('hidden.bs.modal', function () {
         if (cmTaskCommand) {
-            cmTaskCommand.save(); // sync with textarea
+            cmTaskCommand.save();
             cmTaskCommand.toTextArea();
             cmTaskCommand = null;
         }
-        // Reset validations (for both codemirror and others)
         hideInvalid(document.getElementById('taskName'));
         hideCommandInvalid();
     });
 
-    // Restore diagram on localStorage
-    if(localStorage.getItem('diagram_data')) {
-        try {
-            let revivedDrawflow = JSON.parse(localStorage.getItem('diagram_data'));
-            editor.import(revivedDrawflow);
-        } catch(e) {}
-    }
-    // Restore diagram on PHP validation error (prefer diagram_data, fallback to drawflow_data)
+    // Restore diagram data saat start (edit)
     @php
     $restoreDiagram = null;
     if ($errors->any()) {
-        $restoreDiagram = old('diagram_data') ?: old('drawflow_data');
-    } else if (isset($workflow) && $workflow->diagram_data) {
-        $restoreDiagram = $workflow->diagram_data;
+        $restoreDiagram = old('diagram_data') ?: old('drawflow_data', $data['workflow']->diagram_data);
     }
     @endphp
 
     @if(isset($restoreDiagram) && filled($restoreDiagram))
         try {
             let revivedDrawflow = JSON.parse(@json($restoreDiagram));
-            // Safe loop - prevent undefined .data access
-            safeForEachNode(revivedDrawflow, function(id, node) {
-                if (node.data && node.data.hasOwnProperty('wait_all')) {
-                    delete node.data.wait_all;
+            if(revivedDrawflow && revivedDrawflow.drawflow && revivedDrawflow.drawflow.Home && revivedDrawflow.drawflow.Home.data) {
+                for (const id in revivedDrawflow.drawflow.Home.data) {
+                    if (revivedDrawflow.drawflow.Home.data[id].data && revivedDrawflow.drawflow.Home.data[id].data.hasOwnProperty('wait_all')) {
+                        delete revivedDrawflow.drawflow.Home.data[id].data.wait_all;
+                    }
                 }
-            });
+            }
             editor.import(revivedDrawflow);
             setTimeout(() => {
-                if (editor.drawflow && editor.drawflow.Home && editor.drawflow.Home.data) {
-                    Object.keys(editor.drawflow.Home.data).forEach(function(id) {
+                for (const id in editor.drawflow.Home.data) {
+                    const node = editor.drawflow.Home.data[id];
+                    if (node.name === 'task') {
+                        let nodeElem = document.getElementById('node-' + id);
+                        if (nodeElem) {
+                            let contentElem = nodeElem.querySelector('.drawflow_content_node');
+                            if (contentElem) {
+                                contentElem.innerHTML = getTaskNodeHtml(
+                                    node.data.name || '',
+                                    id
+                                );
+                            }
+                        }
+                    }
+                }
+            }, 100);
+        } catch (e) {/* fail silent */}
+    @else
+        // Fallback ke data diagram di workflow (jika edit lama)
+        @if(!empty($data['workflow']->diagram_data))
+            try {
+                let revivedDrawflow = JSON.parse(@json($data['workflow']->diagram_data));
+                if(revivedDrawflow && revivedDrawflow.drawflow && revivedDrawflow.drawflow.Home && revivedDrawflow.drawflow.Home.data) {
+                    for (const id in revivedDrawflow.drawflow.Home.data) {
+                        if (revivedDrawflow.drawflow.Home.data[id].data && revivedDrawflow.drawflow.Home.data[id].data.hasOwnProperty('wait_all')) {
+                            delete revivedDrawflow.drawflow.Home.data[id].data.wait_all;
+                        }
+                    }
+                }
+                editor.import(revivedDrawflow);
+                setTimeout(() => {
+                    for (const id in editor.drawflow.Home.data) {
                         const node = editor.drawflow.Home.data[id];
-                        if (node && node.name === 'task') {
+                        if (node.name === 'task') {
                             let nodeElem = document.getElementById('node-' + id);
                             if (nodeElem) {
                                 let contentElem = nodeElem.querySelector('.drawflow_content_node');
                                 if (contentElem) {
                                     contentElem.innerHTML = getTaskNodeHtml(
-                                        node.data ? (node.data.name || '') : '',
+                                        node.data.name || '',
                                         id
                                     );
                                 }
                             }
                         }
-                    });
-                }
-            }, 100);
-        } catch (e) {
-            // Fallback: do nothing, or optionally clear editor
-        }
-    @else
-        @if(old('drawflow_data'))
-            try {
-                let oldDrawflow = JSON.parse(@json(old('drawflow_data')));
-                safeForEachNode(oldDrawflow, function(id, node) {
-                    if (node.data && node.data.hasOwnProperty('wait_all')) {
-                        delete node.data.wait_all;
-                    }
-                });
-                editor.import(oldDrawflow);
-                setTimeout(() => {
-                    if (editor.drawflow && editor.drawflow.Home && editor.drawflow.Home.data) {
-                        Object.keys(editor.drawflow.Home.data).forEach(function(id) {
-                            const node = editor.drawflow.Home.data[id];
-                            if (node && node.name === 'task') {
-                                let nodeElem = document.getElementById('node-' + id);
-                                if (nodeElem) {
-                                    let contentElem = nodeElem.querySelector('.drawflow_content_node');
-                                    if (contentElem) {
-                                        contentElem.innerHTML = getTaskNodeHtml(
-                                            node.data ? (node.data.name || '') : '',
-                                            id
-                                        );
-                                    }
-                                }
-                            }
-                        });
                     }
                 }, 100);
-            } catch (e) {}
-        @else
-            try {
-                let lsDrawflow = localStorage.getItem('diagram_data');
-                if(lsDrawflow){
-                    let lsDrawflowObj = JSON.parse(lsDrawflow);
-                    safeForEachNode(lsDrawflowObj, function(id, node) {
-                        if (node.data && node.data.hasOwnProperty('wait_all')) {
-                            delete node.data.wait_all;
-                        }
-                    });
-                    editor.import(lsDrawflowObj);
-                    setTimeout(() => {
-                        if (editor.drawflow && editor.drawflow.Home && editor.drawflow.Home.data) {
-                            Object.keys(editor.drawflow.Home.data).forEach(function(id) {
-                                const node = editor.drawflow.Home.data[id];
-                                if (node && node.name === 'task') {
-                                    let nodeElem = document.getElementById('node-' + id);
-                                    if (nodeElem) {
-                                        let contentElem = nodeElem.querySelector('.drawflow_content_node');
-                                        if (contentElem) {
-                                            contentElem.innerHTML = getTaskNodeHtml(
-                                                node.data ? (node.data.name || '') : '',
-                                                id
-                                            );
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    }, 100);
-                }
-            } catch(e){}
+            } catch (e) {/* fail silent */}
         @endif
     @endif
 
-    // Save drawflow data on form submit
-    if(document.getElementById('workflowForm')) {
-        document.getElementById('workflowForm').addEventListener('submit', function() {
+    // Save drawflow data sebelum submit form
+    if(document.getElementById('save-workflow-form')) {
+        document.getElementById('save-workflow-form').addEventListener('submit', function() {
             document.getElementById('drawflow_data').value = JSON.stringify(editor.export());
         });
     }
 
-    // Add new task (open modal in add mode)
     document.getElementById('btn-insert-task').addEventListener('click', function() {
         document.getElementById('taskForm').reset();
         document.getElementById('taskNodeId').value = '';
         selectedNodeId = null;
-        document.getElementById('taskModalLabel').textContent = 'Add Task';
+        document.getElementById('taskModalTitleText').textContent = 'Add Task';
         setTaskCommandValue('');
         hideInvalid(document.getElementById('taskName'));
         hideCommandInvalid();
     });
 
-    // Lock/unlock drawflow move/connection
+    // Lock/unlock drawflow
     document.getElementById('btn-lock-drawflow').addEventListener('click', function() {
         isLocked = !isLocked;
         if(isLocked) {
@@ -729,17 +648,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Open edit modal for node
+    // Open edit task modal
     function openEditTaskModal(nodeId) {
         let nodeData = editor.getNodeFromId(nodeId);
         if(nodeData && nodeData.name === 'task') {
             document.getElementById('taskNodeId').value = nodeId;
-            document.getElementById('taskName').value = nodeData.data && typeof nodeData.data.name !== 'undefined' ? nodeData.data.name : '';
-            document.getElementById('taskDescription').value = nodeData.data && typeof nodeData.data.description !== 'undefined' ? nodeData.data.description : '';
-            document.getElementById('result_file').value = nodeData.data && typeof nodeData.data.result !== 'undefined' ? nodeData.data.result : '';
-            setTaskCommandValue(nodeData.data && typeof nodeData.data.command !== 'undefined' ? nodeData.data.command : '');
+            document.getElementById('taskName').value = nodeData.data.name || '';
+            document.getElementById('taskDescription').value = nodeData.data.description || '';
+            setTaskCommandValue(nodeData.data.command || '');
+            document.getElementById('wait').checked = !!nodeData.data.wait;
             selectedNodeId = nodeId;
-            document.getElementById('taskModalLabel').textContent = 'Edit Task';
+            document.getElementById('taskModalTitleText').textContent = 'Edit Task';
             hideInvalid(document.getElementById('taskName'));
             hideCommandInvalid();
             let modal = new bootstrap.Modal(document.getElementById('taskModal'));
@@ -747,10 +666,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Delegate click on edit/delete inside nodes
+    // Delegate edit/delete button in node
     drawflowElem.addEventListener('click', function(e) {
         if(isLocked) return;
-        // Edit
         let editBtn = e.target.closest('.btn-edit-task');
         if(editBtn) {
             let nodeElem = e.target.closest('.drawflow-node');
@@ -761,7 +679,6 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             return;
         }
-        // Delete
         let deleteBtn = e.target.closest('.btn-delete-task');
         if(deleteBtn) {
             let nodeElem = e.target.closest('.drawflow-node');
@@ -786,7 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         editor.removeNodeId('node-' + nodeId);
                     }
                 });
-                
             }
             e.stopPropagation();
             return;
@@ -794,12 +710,10 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDiagramData(editor);
     });
 
-    // Handle add/edit submit with custom validation
+    // Submit task form (add/edit)
     document.getElementById('taskForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
         let valid = true;
-
         let nameEl = document.getElementById('taskName');
         let name = nameEl.value.trim();
         if(!name) {
@@ -808,42 +722,24 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             hideInvalid(nameEl);
         }
-
         let description = document.getElementById('taskDescription').value.trim();
-        let result = document.getElementById('result_file').value.trim();
         let command = getTaskCommandValue().trim();
         let commandTextarea = document.getElementById('taskCommand');
-
         if(!command) {
             showCommandInvalid('Command is required.');
-            if (cmTaskCommand) {
-                cmTaskCommand.focus();
-            }
+            if (cmTaskCommand) cmTaskCommand.focus();
             valid = false;
         } else {
             hideCommandInvalid();
         }
-
-        if (!valid) {
-            return;
-        }
-
+        if (!valid) return;
         commandTextarea.value = command;
-
+        let wait = document.getElementById('wait').checked ? true : false;
         let nodeId = document.getElementById('taskNodeId').value;
-        let html = getTaskNodeHtml(name, '');
-
         if(nodeId) {
             let node = editor.getNodeFromId(nodeId);
             if(node) {
-                // Defensive: .data might be undefined on broken diagrams
-                let origData = node.data || {};
-                editor.updateNodeDataFromId(nodeId, {
-                    name,
-                    description,
-                    command,
-                    result
-                });
+                editor.updateNodeDataFromId(nodeId, {name, description, command, wait, status: "", stdout: "", error: "", pid: ""});
                 let nodeElem = document.getElementById('node-' + nodeId);
                 if(nodeElem) {
                     let contentElem = nodeElem.querySelector('.drawflow_content_node');
@@ -854,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateDiagramData(editor);
             }
         } else {
-            let newId = editor.addNode('task', 1, 1, 100, 100, 'task', {name, description, command, result}, html);
+            let newId = editor.addNode('task', 1, 1, 100, 100, 'task', {name, description, command, wait, status: "", stdout: "", error: "", pid: ""}, getTaskNodeHtml(name, ''));
             setTimeout(() => {
                 let nodeElem = document.getElementById('node-' + newId);
                 if(nodeElem) {
@@ -870,15 +766,21 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDiagramData(editor);
     });
 
-    //delete local storage
+    //delete local storage setelah update (edit)
     $("#btn-save-workflow").on('click', function() {
         localStorage.removeItem('diagram_data');
     });
 
+    // Double click node to edit (edit mode)
+    drawflowElem.addEventListener('dblclick', function(e) {
+        if (isLocked) return;
+        let node = e.target.closest('.drawflow-node');
+        if (node) {
+            let id = node.id.replace('node-', '');
+            openEditTaskModal(id);
+        }
+    });
 });
 </script>
 @endpush
-
-
-
 @endsection

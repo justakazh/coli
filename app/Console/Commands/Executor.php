@@ -37,7 +37,7 @@ class Executor extends Command
         $output_dir = $scan->output;
         
 
-        $command = "python3 " . base_path("engine/ewe.py") .
+        $command = "python3 " . base_path("engine/executor.py") .
             " --target " . escapeshellarg($target) .
             " --workflow " . escapeshellarg($workflow_path) .
             " --output " . escapeshellarg($output_dir) .

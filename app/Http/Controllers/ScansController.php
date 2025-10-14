@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Scopes;
 use App\Models\Workflows;
 use App\Models\Scans;
+use Illuminate\Support\Str;
 
 class ScansController extends Controller
 {
@@ -50,8 +51,13 @@ class ScansController extends Controller
             'target' => $request->target,
         ]);
 
+        $workflow = Workflows::find($request->workflow_id);
+        if(!$workflow){
+            return redirect()->route('scans')->with('error', 'Workflow not found');
+        }
+
         //create directory output
-        $output_dir = env('WORKDIR') . '/output/' . $scope->id . '/' . $request->workflow_id;
+        $output_dir = env('WORKDIR') . '/output/' . Str::slug($request->target) . '/' . $workflow->slug;
         if (!file_exists($output_dir)) {
             mkdir($output_dir, 0777, true);
         }
@@ -59,7 +65,7 @@ class ScansController extends Controller
         //create scan
         $scan = Scans::create([
             'scope_id' => $scope->id,
-            'workflow_id' => $request->workflow_id,
+            'workflow_id' => $workflow->id,
             'status' => 'pending',
             'output' => $output_dir
         ]);
@@ -145,6 +151,11 @@ class ScansController extends Controller
             rmdir($output);
         }
 
+        //finaly delete scope dir
+        rmdir(env('WORKDIR').'/output/'.Str::slug($scan->scope->target));
+
+
+        //delete database data
         $scan->delete();
         $scope->delete();
 

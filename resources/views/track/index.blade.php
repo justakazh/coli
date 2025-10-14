@@ -1,7 +1,16 @@
 @extends('templates.v1')
 @section('content')
+@section("title", "Track")
 
-
+@push('styles')
+<style>
+@media (max-width: 576px) {
+    .btn-text {
+        display: none !important;
+    }
+}
+</style>
+@endpush
 
 <div class="container-fluid" >
 
@@ -12,7 +21,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-
 
     @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show my-2" role="alert">
@@ -25,8 +33,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-
-
 
     <div class="card shadow mb-3">
         <div class="card-body ">
@@ -98,26 +104,11 @@
                                         <i class="fas {{ $statusIcon }}"></i> {{ $scan->status }}
                                     </span>
                                     @if($scan->status == 'failed')
-                                    <span class="badge bg-warning text-uppercase d-inline-flex align-items-center gap-2" style="cursor:pointer;white-space:nowrap;" data-bs-toggle="modal" data-bs-target="#logModal-{{ $scan->id }}" title="Show Log">
+                                    <span class="badge bg-warning text-uppercase d-inline-flex align-items-center gap-2" style="cursor:pointer;white-space:nowrap;" data-bs-toggle="modal" data-bs-target="#sharedLogModal" title="Show Log"
+                                          data-log="{{ htmlspecialchars($scan->log ?? 'No log available.', ENT_QUOTES, 'UTF-8') }}"
+                                          data-title="Log for Scan {{ $scan->scope->target }}">
                                         <i class="fas fa-file-alt text-dark"></i>
                                     </span>
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="logModal-{{ $scan->id }}" tabindex="-1" aria-labelledby="logModalLabel-{{ $scan->id }}" aria-hidden="true">
-                                        <div class="modal-dialog modal-lg modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="logModalLabel-{{ $scan->id }}">Log for Scan {{ $scan->scope->target }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body" style="max-height:60vh;overflow:auto;">
-                                                    <pre style="background-color:#212529;padding:16px;border-radius:4px;font-size:0.95em;color:#fff;white-space:pre-wrap;word-break:break-all;">{{ $scan->log ?? 'No log available.' }}</pre>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                     @endif
                                 </td>
                                 <td class="text-center" style="min-width:230px;white-space:nowrap;">
@@ -174,247 +165,100 @@
     </div>
 
     @php
-// $scan should be passed from the controller.
-// We expect $scan->output to be the path containing process_log.json
-$processLog = [];
-$processName = null;
-$processDescription = null;
-
-// The only allowed statuses.
-$allowedStatusMap = [
-    ''          => 'pending', // treat empty as pending
-    'pending'   => 'pending',
-    'running'   => 'running',
-    'failed'    => 'failed',
-    'stoped'    => 'stoped',
-    'finished'  => 'finished',
-];
-
-// Canonical display format for allowed statuses
-function statusDisplayMap($status) {
-    switch ($status) {
-        case 'pending':
-            return ['mermaid' => 'blue',    'badge' => 'primary text-white', 'label' => 'Pending'];
-        case 'running':
-            return ['mermaid' => 'yellow',  'badge' => 'warning text-dark',  'label' => 'Running'];
-        case 'failed':
-            return ['mermaid' => 'red',     'badge' => 'danger',             'label' => 'Failed'];
-        case 'stoped':
-            return ['mermaid' => 'gray',    'badge' => 'secondary',          'label' => 'Stopped'];
-        case 'finished':
-            return ['mermaid' => 'green',   'badge' => 'success',            'label' => 'Finished'];
-        default:
-            return ['mermaid' => 'gray',    'badge' => 'secondary',          'label' => ucfirst($status)];
-    }
-}
-
-// Helper to transform incoming status to allowed set only
-function normalizeStatus($status) {
-    $status = strtolower(trim($status));
-    if ($status === '') return 'pending';
-    if (in_array($status, ['pending', 'running', 'failed', 'stoped', 'finished'])) return $status;
-    // Additional aliases
-    if ($status === 'stopped')   return 'stoped';
-    if ($status === 'done')      return 'finished';
-    if ($status === 'error')     return 'failed';
-    return 'pending';
-}
-
-// Recursively transform all tasks' statuses only to allowed set
-function enforceAllowedTaskStatuses(&$tasks) {
-    foreach ($tasks as &$t) {
-        $t['status'] = normalizeStatus($t['status'] ?? '');
-        if (!empty($t['tasks'])) {
-            enforceAllowedTaskStatuses($t['tasks']);
-        }
-    }
-}
-
-// Load process log if available
-if (isset($scan) && !empty($scan->output)) {
-    $processLogPath = $scan->output . '/process_log.json';
-    if (file_exists($processLogPath)) {
-        $log = file_get_contents($processLogPath);
-        $processJson = json_decode($log, true);
-        if (is_array($processJson)) {
-            $processLog = $processJson['tasks'] ?? [];
-            $processName = $processJson['name'] ?? null;
-            $processDescription = $processJson['description'] ?? null;
-        }
-    }
-}
-if (!empty($processLog)) {
-    enforceAllowedTaskStatuses($processLog);
-}
-
-// Recursive function to generate MermaidJS flowchart
-function renderMermaidTasks($tasks, &$nodes, &$edges, $parentId = null, &$counter = 1) {
-    foreach ($tasks as $task) {
-        $nodeId = 'T' . $counter++;
-        $label = addslashes($task['name'] ?? 'Unnamed Task');
-        $status = $task['status'] ?? 'pending';
-        $statusInfo = statusDisplayMap($status);
-        $color = $statusInfo['mermaid'];
-        $nodes[] = "$nodeId([\"$label\"]):::status_$color";
-        if ($parentId) {
-            $edges[] = "$parentId --> $nodeId";
-        }
-        if (!empty($task['tasks'])) {
-            renderMermaidTasks($task['tasks'], $nodes, $edges, $nodeId, $counter);
-        }
-    }
-}
-
-// Recursive function to flatten tasks for table display
-function flattenTasks($tasks, $parent = null, &$flat = [], $level = 0) {
-    foreach ($tasks as $task) {
-        $flat[] = [
-            'name' => $task['name'] ?? 'Unnamed Task',
-            'status' => $task['status'] ?? 'pending',
-            'output' => $task['output'] ?? '',
-            'error' => $task['error'] ?? '',
-            'level' => $level,
-            'command' => $task['command'] ?? '',
-            'stdout' => $task['stdout'] ?? '',
-        ];
-        if (!empty($task['tasks'])) {
-            flattenTasks($task['tasks'], $task, $flat, $level + 1);
-        }
-    }
-    return $flat;
-}
-
-$nodes = [];
-$edges = [];
-$counter = 1;
-if (!empty($processLog)) {
-    renderMermaidTasks($processLog, $nodes, $edges, null, $counter);
-    $flatTasks = flattenTasks($processLog);
-} else {
-    $flatTasks = [];
-}
-
-// Function to display Bootstrap badge for status
-function getStatusBadge($status) {
-    $info = statusDisplayMap($status);
-    return '<span class="badge bg-' . $info['badge'] . '">' . $info['label'] . '</span>';
-}
-
-// Recursive function to display all task logs (nested)
-function displayTaskLogs($tasks, $level = 0, &$idx = 1) {
-    foreach ($tasks as $task) {
-        echo '<tr>';
-        echo '<td class="text-muted">' . $idx++ . '</td>';
-        echo '<td><span style="">' . e($task['name'] ?? 'Unnamed Task') . '</span></td>';
-        echo '<td>';
-        echo getStatusBadge($task['status'] ?? 'pending');
-        echo '</td>';
-
-        // Logging column
-        echo '<td>';
-        if (env("ERROR_LOG") == "true") {
-            $modalId = 'stdoutModal' . uniqid();
-            if (!empty($task['stdout'])) {
-                echo '<button class="btn btn-link btn-sm p-0 text-secondary" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">View</button>';
-                // Stdout Modal
-                echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-labelledby="' . $modalId . 'Label" aria-hidden="true">';
-                echo '  <div class="modal-dialog modal-lg modal-dialog-scrollable">';
-                echo '    <div class="modal-content">';
-                echo '      <div class="modal-header">';
-                echo '        <h5 class="modal-title" id="' . $modalId . 'Label">Logging: ' . e($task['name'] ?? 'Unnamed Task') . '</h5>';
-                echo '        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
-                echo '      </div>';
-                echo '      <div class="modal-body">';
-                echo '        <pre class="p-2 rounded text-danger" style="max-height:400px;overflow:auto;background:none;">' . e($task['stdout']) . '</pre>';
-                echo '      </div>';
-                echo '    </div>';
-                echo '  </div>';
-                echo '</div>';
-            } else {
-                echo '<span class="text-muted">-</span>';
+    $scan = $data['scan'];
+    $processLog = [];
+    $processName = null;
+    $processDescription = null;
+    // Drawflow-style process_log.json
+    $drawflowData = null;
+    if (isset($scan) && !empty($scan->output)) {
+        $processLogPath = $scan->output . '/process_log.json';
+        if (file_exists($processLogPath)) {
+            $log = file_get_contents($processLogPath);
+            $json = json_decode($log, true);
+            $drawflowData = $json;
+            // merge fallback if process_log is still array of tasks
+            if (isset($json['tasks'])) {
+                $processLog = $json['tasks'];
+                $processName = $json['name'] ?? null;
+                $processDescription = $json['description'] ?? null;
             }
-        } else {
-            echo '<span class="text-muted">-</span>';
-        }
-        echo '</td>';
-
-        // Error column: Only for status == failed
-        echo '<td>';
-        if ($task['status'] === 'failed' && !empty($task['error'])) {
-            $modalId = 'errorModal' . uniqid();
-            echo '<button class="btn btn-link btn-sm p-0 text-danger" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">View</button>';
-            // Error Modal
-            echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-labelledby="' . $modalId . 'Label" aria-hidden="true">';
-            echo '  <div class="modal-dialog modal-lg modal-dialog-scrollable">';
-            echo '    <div class="modal-content">';
-            echo '      <div class="modal-header">';
-            echo '        <h5 class="modal-title" id="' . $modalId . 'Label">Task Error: ' . e($task['name'] ?? 'Unnamed Task') . '</h5>';
-            echo '        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
-            echo '      </div>';
-            echo '      <div class="modal-body">';
-            echo '        <pre class="p-2 rounded text-danger" style="max-height:400px;overflow:auto;background:none;">' . e($task['error']) . '</pre>';
-            echo '      </div>';
-            echo '    </div>';
-            echo '  </div>';
-            echo '</div>';
-        } else {
-            echo '<span class="text-muted">-</span>';
-        }
-        echo '</td>';
-
-        // Command column
-        echo '<td>';
-        if (!empty($task['command'])) {
-            echo '<span class="text-monospace small">' . e($task['command']) . '</span>';
-        } else {
-            echo '<span class="text-muted">-</span>';
-        }
-        echo '</td>';
-        echo '</tr>';
-
-        // Loop children
-        if (!empty($task['tasks'])) {
-            displayTaskLogs($task['tasks'], $level + 1, $idx);
         }
     }
-}
-@endphp
+
+    // Helper: status color to mermaid class
+    function df_status_to_mermaid($status) {
+        $status = strtolower(trim($status));
+        if ($status === "finished") return "green";
+        if ($status === "stoped" || $status === "stopped") return "gray";
+        if ($status === "failed") return "red";
+        if ($status === "running") return "yellow";
+        if ($status === "pending") return "blue";
+        return "blue";
+    }
+    @endphp
 
 <div class="card border-0 shadow-sm h-100 mb-4">
-<div class="card-header border-bottom-0 pb-2">
-    <div class="d-flex align-items-center">
-        <i class="mdi mdi-chart-timeline-variant me-2 text-info"></i>
-        <h6 class="mb-0 fw-semibold">
-            Process Flow Diagram
-            @if($processName)
-                <small class="text-muted fw-normal ms-2">{{ $processName }}</small>
-            @endif
-        </h6>
+    <div class="card-header border-bottom-0 pb-2">
+        <div class="d-flex align-items-center">
+            <i class="mdi mdi-chart-timeline-variant me-2 text-info"></i>
+            <h6 class="mb-0 fw-semibold">
+                Process Flow Diagram
+                @if($processName)
+                    <small class="text-muted fw-normal ms-2">{{ $processName }}</small>
+                @endif
+            </h6>
+        </div>
     </div>
-</div>
-<div class="card-body pt-2">
-    <div class="legend mb-3">
-        <span class="badge bg-primary text-white me-2">Pending</span>
-        <span class="badge bg-warning text-dark me-2">Running</span>
-        <span class="badge bg-danger me-2">Failed</span>
-        <span class="badge bg-secondary me-2">Stopped</span>
-        <span class="badge bg-success me-2">Finished</span>
-    </div>
-    <div class="mermaid-container border rounded p-2" style="background: none;">
-        @if(empty($processLog))
-            <div class="alert alert-warning mb-0 py-2 px-3" role="alert">
-                <i class="mdi mdi-alert me-2"></i>
-                No process logs found for this scan.
-            </div>
-        @else
-            <pre class="mermaid" id="mermaid-log-diagram" style="background:none; margin-bottom:0;">
+    <div class="card-body pt-2">
+        <div class="legend mb-3">
+            <span class="badge bg-primary text-white me-2">Pending</span>
+            <span class="badge bg-warning text-dark me-2">Running</span>
+            <span class="badge bg-danger me-2">Failed</span>
+            <span class="badge bg-secondary me-2">Stopped</span>
+            <span class="badge bg-success me-2">Finished</span>
+        </div>
+        <div class="mermaid-container border rounded p-2" style="background: none;">
+            @if(empty($drawflowData))
+                <div class="alert alert-warning mb-0 py-2 px-3" role="alert">
+                    <i class="mdi mdi-alert me-2"></i>
+                    No process logs found for this scan.
+                </div>
+            @else
+                <pre class="mermaid" id="mermaid-log-diagram" style="background:none; margin-bottom:0;">
 flowchart TD
-@foreach($nodes as $node)
-{!! $node !!}
-@endforeach
-@foreach($edges as $edge)
-{!! $edge !!}
-@endforeach
+@php
+    // Build Mermaid nodes for each drawflow "task node"
+    $dfNodes = [];
+    $dfEdges = [];
+    foreach ($drawflowData as $id => $node) {
+        if (!is_array($node) || !isset($node['data']['name'])) continue;
+        $nodeId = "N".$id;
+        $title = addslashes($node['data']['name']);
+        $status = isset($node['data']['status']) ? df_status_to_mermaid($node['data']['status']) : "blue";
+        $dfNodes[$id] = $nodeId . "([\"$title\"]):::status_$status";
+    }
+    // Walk outputs to generate edges
+    foreach ($drawflowData as $id => $node) {
+        $fromId = "N".$id;
+        // walk all outputs
+        if (!empty($node['outputs']) && is_array($node['outputs'])) {
+            foreach ($node['outputs'] as $outputName => $output) {
+                if (!empty($output['connections']) && is_array($output['connections'])) {
+                    foreach ($output['connections'] as $conn) {
+                        $toIdStr = (string)($conn['node'] ?? '');
+                        if (isset($dfNodes[$toIdStr])) {
+                            $dfEdges[] = $fromId . " --> " . $dfNodes[$toIdStr];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Output node and edges
+    foreach ($dfNodes as $line) { echo "$line\n"; }
+    foreach ($dfEdges as $line) { echo "$line\n"; }
+@endphp
 
 classDef status_green fill:#c6f6d5,stroke:#38a169,stroke-width:2px;
 classDef status_red fill:#fed7d7,stroke:#e53e3e,stroke-width:2px;
@@ -423,10 +267,10 @@ classDef status_gray fill:#e2e8f0,stroke:#718096,stroke-width:2px;
 classDef status_blue fill:#bee3f8,stroke:#3182ce,stroke-width:2px;
 %% Change line color to #646EFB
 linkStyle default stroke:#646EFB,stroke-width:2px;
-            </pre>
-        @endif
+                </pre>
+            @endif
+        </div>
     </div>
-</div>
 </div>
 <div class="card border-0 shadow-sm h-100 mb-4">
 <div class="card-header border-bottom-0 pb-2">
@@ -438,43 +282,250 @@ linkStyle default stroke:#646EFB,stroke-width:2px;
 <div class="card-body pt-2">
     <div class="table-responsive">
         <div class="table-responsive" style="min-width: 330px;">
-            <table class="table table-sm table-hover align-middle mb-0" style="min-width:700px;">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="text-center" style="width:40px;white-space:nowrap;">#</th>
-                        <th style="white-space:nowrap;">Task Name</th>
-                        <th style="white-space:nowrap;">Status</th>
-                        <th style="white-space:nowrap;">Logging</th>
-                        <th style="white-space:nowrap;">Error</th>
-                        <th style="white-space:nowrap;">Command</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if(!empty($processLog))
-                        @php $idx = 1; @endphp
-                        {!! displayTaskLogs($processLog, 0, $idx) !!}
-                    @else
+            <div class="table-responsive" style="min-width: 330px;">
+                
+                <table class="table table-sm table-hover align-middle mb-0 w-100" style="min-width: 600px;">
+                    <thead>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="mdi mdi-folder-open mdi-24px d-block mb-2"></i>
-                                No task logs found.
-                            </td>
+                            <th class="text-center" style="width:40px;white-space:nowrap;">#</th>
+                            <th style="white-space:nowrap;">Task Name</th>
+                            <th style="white-space:nowrap;">Status</th>
+                            <th style="white-space:nowrap;">Log</th>
+                            <th style="white-space:nowrap;">Error</th>
+                            <th style="white-space:nowrap;">Command</th>
                         </tr>
-                    @endif
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php
+                            function statusColoredLabel($status) {
+                                $status_lc = strtolower(trim($status));
+                                switch ($status_lc) {
+                                    case 'pending':
+                                        return '<span class="badge bg-primary text-white">Pending</span>';
+                                    case 'running':
+                                        return '<span class="badge bg-warning text-dark">Running</span>';
+                                    case 'failed':
+                                        return '<span class="badge bg-danger">Failed</span>';
+                                    case 'stoped':
+                                    case 'stopped':
+                                        return '<span class="badge bg-secondary">Stopped</span>';
+                                    case 'finished':
+                                        return '<span class="badge bg-success">Finished</span>';
+                                    default:
+                                        return '<span class="badge bg-light text-dark">'.ucfirst($status).'</span>';
+                                }
+                            }
+
+                            // Prepare commands for modal
+                            $commandsForModal = [];
+
+                            if (!empty($processLog)) {
+                                $idx = 1;
+                                $displayTaskLogs = function($tasks, $level = 0) use (&$displayTaskLogs, &$idx, &$commandsForModal) {
+                                    foreach ($tasks as $task) { ?>
+                                        <tr>
+                                            <td class="text-center"><?= $idx++ ?></td>
+                                            <td><?= e(htmlspecialchars($task['name'] ?? 'Unnamed Task')) ?></td>
+                                            <td><?= statusColoredLabel($task['status'] ?? 'pending') ?></td>
+
+                                            <!-- Log -->
+                                            <?php if (env("ERROR_LOG") == "true" && !empty($task['stdout'])): ?>
+                                                <td>
+                                                    <button class="btn btn-primary btn-sm btn-show-log-modal" 
+                                                        data-log="<?= htmlspecialchars($task['stdout'], ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-title="Logging: <?= htmlspecialchars($task['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#sharedLogModal">
+                                                        <i class="fas fa-file-alt"></i>
+                                                        <span class="btn-text">Log</span>
+                                                    </button>
+                                                </td>
+                                            <?php else: ?>
+                                                <td>-</td>
+                                            <?php endif; ?>
+
+                                            <!-- Error -->
+                                            <?php if (isset($task['status']) && strtolower($task['status']) === 'failed' && !empty($task['error'])): ?>
+                                                <td>
+                                                    <button class="btn btn-danger btn-sm btn-show-error-modal"
+                                                        data-error="<?= htmlspecialchars($task['error'], ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-name="<?= htmlspecialchars($task['name'] ?? 'Task Error', ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#sharedErrorModal">
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                        <span class="btn-text">Error</span>
+                                                    </button>
+                                                </td>
+                                            <?php else: ?>
+                                                <td>-</td>
+                                            <?php endif; ?>
+
+                                            <!-- Command -->
+                                            <?php if (!empty($task['command'])): 
+                                                $commandsForModal[] = [
+                                                    'name' => $task['name'] ?? 'Command',
+                                                    'command' => $task['command'],
+                                                ];
+                                            ?>
+                                                <td>
+                                                    <button class="btn btn-primary btn-sm btn-show-command-modal" 
+                                                        data-command="<?= htmlspecialchars($task['command'], ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-name="<?= htmlspecialchars($task['name'] ?? 'Command', ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#sharedCommandModal">
+                                                        <i class="fas fa-terminal"></i>
+                                                        <span class="btn-text">Command</span>
+                                                    </button>
+                                                </td>
+                                            <?php else: ?>
+                                                <td>-</td>
+                                            <?php endif; ?>
+                                        </tr>
+                                        <?php
+                                        // Subtasks
+                                        if (!empty($task['tasks'])) {
+                                            $displayTaskLogs($task['tasks'], $level + 1);
+                                        }
+                                    }
+                                };
+                                $displayTaskLogs($processLog);
+                            } elseif(!empty($drawflowData)) {
+                                $idx = 1;
+                                foreach ($drawflowData as $id => $node) {
+                                    if (!is_array($node) || !isset($node['data']['name'])) continue;
+                                    $data = $node['data'];
+                                    $status = $data['status'] ?? "pending";
+                                    $command = $data['command'] ?? "";
+                                    $stdout = $data['stdout'] ?? "";
+                                    $error = $data['error'] ?? "";
+                                    ?>
+                                    <tr>
+                                        <td class="text-center"><?= $idx++ ?></td>
+                                        <td><?= e($data['name'] ?? 'Unnamed Task') ?></td>
+                                        <td><?= statusColoredLabel($status) ?></td>
+                                        <!-- Log -->
+                                        <?php if (env("ERROR_LOG") == "true" && !empty($stdout)): ?>
+                                            <td>
+                                                <button class="btn btn-link btn-sm p-0 btn-show-log-modal" 
+                                                    data-log="<?= htmlspecialchars($stdout, ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-title="Logging: <?= htmlspecialchars($data['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#sharedLogModal">
+                                                    <i class="fas fa-file-alt"></i>
+                                                    <span class="btn-text">Log</span>
+                                                </button>
+                                            </td>
+                                        <?php else: ?>
+                                            <td>-</td>
+                                        <?php endif; ?>
+
+                                        <!-- Error -->
+                                        <?php if (strtolower($status) === 'failed' && !empty($error)): ?>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm btn-show-error-modal"
+                                                    data-error="<?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-name="<?= htmlspecialchars($data['name'] ?? 'Task Error', ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#sharedErrorModal">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <span class="btn-text">Error</span>
+                                                </button>
+                                            </td>
+                                        <?php else: ?>
+                                            <td>-</td>
+                                        <?php endif; ?>
+
+                                        <!-- Command -->
+                                        <?php if (!empty($command)): 
+                                            $commandsForModal[] = [
+                                                'name' => $data['name'] ?? 'Command',
+                                                'command' => $command,
+                                            ];
+                                        ?>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm btn-show-command-modal"
+                                                        data-command="<?= htmlspecialchars($command, ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-name="<?= htmlspecialchars($data['name'] ?? 'Command', ENT_QUOTES, 'UTF-8') ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#sharedCommandModal">
+                                                        <i class="fas fa-terminal"></i>
+                                                        <span class="btn-text">Command</span>
+                                                </button>
+                                            </td>
+                                        <?php else: ?>
+                                            <td>-</td>
+                                        <?php endif; ?>
+                                    </tr>
+                                    <?php
+                                }
+                            } else {
+                        ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="mdi mdi-folder-open mdi-24px d-block mb-2"></i>
+                                    No task logs found.
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+{{-- ONE shared LOG modal --}}
+<div class="modal fade" id="sharedLogModal" tabindex="-1" aria-labelledby="sharedLogModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sharedLogModalLabel">Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="sharedLogContent" class="p-2 rounded" style="max-height:60vh;overflow:auto;font-size:0.95em;white-space:pre-wrap;word-break:break-all;background:#212529;color:#fff;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ONE shared command modal (will be filled by JS) --}}
+<div class="modal fade" id="sharedCommandModal" tabindex="-1" aria-labelledby="sharedCommandModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sharedCommandModalLabel">Command</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="sharedCommandContent" class="p-2 rounded" style="max-height:400px;overflow:auto;font-size:0.95em;white-space:pre-wrap;word-break:break-all;background:none;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ONE shared error modal (akan diisi dengan JS) --}}
+<div class="modal fade" id="sharedErrorModal" tabindex="-1" aria-labelledby="sharedErrorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sharedErrorModalLabel">Task Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="sharedErrorContent" class="p-2 rounded" style="max-height:400px;overflow:auto;white-space:pre-wrap;word-break:break-all;background:none;"></pre>
+            </div>
+        </div>
+    </div>
 </div>
 
 </div>
-
-
-
-
-
-
 
 @push('scripts')
 <script>
@@ -486,7 +537,6 @@ linkStyle default stroke:#646EFB,stroke-width:2px;
             padding: 20
         }
     });
-
 
 document.addEventListener('DOMContentLoaded', function () {
     // Delete confirmation
@@ -592,9 +642,38 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // One modal for all logs
+    document.querySelectorAll('.btn-show-log-modal, [data-bs-target="#sharedLogModal"]').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            let log = btn.getAttribute('data-log');
+            let title = btn.getAttribute('data-title') || 'Log';
+            document.getElementById('sharedLogContent').textContent = log;
+            document.getElementById('sharedLogModalLabel').textContent = title;
+        });
+    });
+
+    // One modal for all command
+    document.querySelectorAll('.btn-show-command-modal').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            let command = btn.getAttribute('data-command');
+            let name = btn.getAttribute('data-name');
+            document.getElementById('sharedCommandContent').textContent = command;
+            document.getElementById('sharedCommandModalLabel').textContent = 'Command: ' + (name ?? 'Command');
+        });
+    });
+
+    // One modal for all errors
+    document.querySelectorAll('.btn-show-error-modal').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            let error = btn.getAttribute('data-error');
+            let name = btn.getAttribute('data-name');
+            document.getElementById('sharedErrorContent').textContent = error;
+            document.getElementById('sharedErrorModalLabel').textContent = 'Task Error: ' + (name ?? 'Task Error');
+        });
+    });
 });
 </script>
 @endpush
-
 
 @endsection

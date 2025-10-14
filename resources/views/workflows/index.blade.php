@@ -71,7 +71,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($workflows as $workflow)
+                            @forelse($data['workflows'] as $workflow)
                                 <tr>
                                     <td class="text-center fw-semibold" style="white-space:nowrap;">{{ $workflow->id }}</td>
                                     <td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;">

@@ -32,7 +32,7 @@ class WorkflowsController extends Controller
 
         $data['workflows'] = $query->get();
 
-        return view('workflows.index', $data);
+        return view('workflows.index', compact('data'));
     }
 
     public function createScript()
@@ -51,7 +51,7 @@ class WorkflowsController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'required',
-            'script' => 'required|file|mimes:yaml,json',
+            'script' => 'required|file|mimes:json',
             'type' => 'required|in:script',
         ]);
 
@@ -103,105 +103,15 @@ class WorkflowsController extends Controller
             return back()->with('error', 'Diagram data not valid');
         }
 
-        $nodes = $diagram['drawflow']['Home']['data'];
-
-        // Helper: find all nodes with no input (roots)
-        $nodeParents = [];
-        foreach ($nodes as $id => $node) {
-            if (isset($node['inputs'])) {
-                foreach ($node['inputs'] as $input) {
-                    if (isset($input['connections'])) {
-                        foreach ($input['connections'] as $conn) {
-                            $nodeParents[$id][] = $conn['node'];
-                        }
-                    }
-                }
-            }
-        }
-
-        // root nodes: nodes not present as child in any connection
-        $allNodeIds = array_keys($nodes);
-        $childNodeIds = [];
-        foreach ($nodes as $id => $node) {
-            if (isset($node['outputs'])) {
-                foreach ($node['outputs'] as $output) {
-                    if (isset($output['connections'])) {
-                        foreach ($output['connections'] as $conn) {
-                            $childNodeIds[] = $conn['node'];
-                        }
-                    }
-                }
-            }
-        }
-        $rootNodeIds = array_diff($allNodeIds, $childNodeIds);
-
-        // Main recursive function to build tasks tree
-        $buildTask = function($nodeId, $nodes, $visited = []) use (&$buildTask) {
-            if (in_array($nodeId, $visited)) return null; // Prevent cyclic
-            $node = $nodes[$nodeId];
-            $data = $node['data'];
-            $task = [
-                "name" => $data['name'] ?? '',
-                "description" => $data['description'] ?? '',
-                "result" => $data['result'] ?? '',
-                "command" => $data['command'] ?? '',
-            ];
-            // If node has children (outputs), build their tasks recursively
-            $childTasks = [];
-            $waitAll = null;
-            if (isset($node['outputs'])) {
-                foreach ($node['outputs'] as $output) {
-                    if (isset($output['connections'])) {
-                        foreach ($output['connections'] as $conn) {
-                            $childId = $conn['node'];
-                            $childTask = $buildTask($childId, $nodes, array_merge($visited, [$nodeId]));
-                            if ($childTask) {
-                                $childTasks[] = $childTask;
-                            }
-                        }
-                    }
-                }
-            }
-            // Optionally set wait_all from data if available
-            if (array_key_exists('wait_all', $data)) {
-                $waitAll = $data['wait_all'];
-            }
-            if (!empty($childTasks)) {
-                $task['tasks'] = $childTasks;
-                if ($waitAll !== null) {
-                    $task['wait_all'] = (bool)$waitAll;
-                }
-            } else {
-                $task['tasks'] = [];
-                if ($waitAll !== null) {
-                    $task['wait_all'] = (bool)$waitAll;
-                }
-            }
-            return $task;
-        };
-
-        $tasks = [];
-        foreach ($rootNodeIds as $rootId) {
-            $tree = $buildTask($rootId, $nodes);
-            if ($tree) $tasks[] = $tree;
-        }
-
-        $workflowScriptArr = [
-            "name" => $request->workflow_name,
-            "description" => $request->workflow_description,
-            "tasks" => $tasks,
-        ];
-        $workflowScript = json_encode($workflowScriptArr, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-
         //save workflow script to file json
         $directory = env('WORKDIR').'/workflows';
         if(!file_exists($directory)){
             mkdir($directory, 0777, true);
         }
+
         $filename = $slug.'.json';
         $script_path = $directory.'/'.$filename;
-        file_put_contents($script_path, $workflowScript);
+        file_put_contents($script_path, $request->diagram_data);
         // Save to database
         $workflow = Workflows::create([
             'name' => $request->workflow_name,
@@ -218,13 +128,13 @@ class WorkflowsController extends Controller
     public function editScript($id)
     {
         $data['workflow'] = Workflows::find($id);
-        return view('workflows.edit.script', $data);
+        return view('workflows.edit.script', compact('data'));
     }
 
     public function editDiagram($id)
     {
         $data['workflow'] = Workflows::find($id);
-        return view('workflows.edit.diagram', $data);
+        return view('workflows.edit.diagram', compact('data'));
     }
 
     public function updateScript(Request $request, $id)
@@ -233,7 +143,7 @@ class WorkflowsController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'required',
-            'script' => 'file|mimes:yaml,json',
+            'script' => 'file|mimes:json',
             'type' => 'required|in:script,diagram',
         ]);
 
@@ -301,96 +211,6 @@ class WorkflowsController extends Controller
             return back()->with('error', 'Diagram data not valid');
         }
 
-        $nodes = $diagram['drawflow']['Home']['data'];
-
-        // Helper: find all nodes with no input (roots)
-        $nodeParents = [];
-        foreach ($nodes as $id => $node) {
-            if (isset($node['inputs'])) {
-                foreach ($node['inputs'] as $input) {
-                    if (isset($input['connections'])) {
-                        foreach ($input['connections'] as $conn) {
-                            $nodeParents[$id][] = $conn['node'];
-                        }
-                    }
-                }
-            }
-        }
-
-        // root nodes: nodes not present as child in any connection
-        $allNodeIds = array_keys($nodes);
-        $childNodeIds = [];
-        foreach ($nodes as $id => $node) {
-            if (isset($node['outputs'])) {
-                foreach ($node['outputs'] as $output) {
-                    if (isset($output['connections'])) {
-                        foreach ($output['connections'] as $conn) {
-                            $childNodeIds[] = $conn['node'];
-                        }
-                    }
-                }
-            }
-        }
-        $rootNodeIds = array_diff($allNodeIds, $childNodeIds);
-
-        // Main recursive function to build tasks tree
-        $buildTask = function($nodeId, $nodes, $visited = []) use (&$buildTask) {
-            if (in_array($nodeId, $visited)) return null; // Prevent cyclic
-            $node = $nodes[$nodeId];
-            $data = $node['data'];
-            $task = [
-                "name" => $data['name'] ?? '',
-                "description" => $data['description'] ?? '',
-                "result" => $data['result'] ?? '',
-                "command" => $data['command'] ?? '',
-            ];
-            // If node has children (outputs), build their tasks recursively
-            $childTasks = [];
-            $waitAll = null;
-            if (isset($node['outputs'])) {
-                foreach ($node['outputs'] as $output) {
-                    if (isset($output['connections'])) {
-                        foreach ($output['connections'] as $conn) {
-                            $childId = $conn['node'];
-                            $childTask = $buildTask($childId, $nodes, array_merge($visited, [$nodeId]));
-                            if ($childTask) {
-                                $childTasks[] = $childTask;
-                            }
-                        }
-                    }
-                }
-            }
-            // Optionally set wait_all from data if available
-            if (array_key_exists('wait_all', $data)) {
-                $waitAll = $data['wait_all'];
-            }
-            if (!empty($childTasks)) {
-                $task['tasks'] = $childTasks;
-                if ($waitAll !== null) {
-                    $task['wait_all'] = (bool)$waitAll;
-                }
-            } else {
-                $task['tasks'] = [];
-                if ($waitAll !== null) {
-                    $task['wait_all'] = (bool)$waitAll;
-                }
-            }
-            return $task;
-        };
-
-        $tasks = [];
-        foreach ($rootNodeIds as $rootId) {
-            $tree = $buildTask($rootId, $nodes);
-            if ($tree) $tasks[] = $tree;
-        }
-
-        $workflowScriptArr = [
-            "name" => $request->workflow_name,
-            "description" => $request->workflow_description,
-            "tasks" => $tasks,
-        ];
-        $workflowScript = json_encode($workflowScriptArr, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
 
         //save workflow script to file json
         $directory = env('WORKDIR').'/workflows';
@@ -399,7 +219,7 @@ class WorkflowsController extends Controller
         }
         $filename = $workflow->slug.'.json';
         $script_path = $directory.'/'.$filename;
-        file_put_contents($script_path, $workflowScript);
+        file_put_contents($script_path, $request->diagram_data);
         
         $workflow->diagram_data = $request->diagram_data;
         $workflow->script_path = $script_path;
