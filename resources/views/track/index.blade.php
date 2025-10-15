@@ -529,6 +529,12 @@ linkStyle default stroke:#646EFB,stroke-width:2px;
 
 @push('scripts')
 <script>
+//automatic refresh page 
+setInterval(function() {
+window.location.reload();
+}, 60000); // 60000 ms = 1 minute
+
+    
     mermaid.initialize({
         startOnLoad: true,
         theme: 'default',
@@ -673,6 +679,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 </script>
 @endpush
 
