@@ -70,6 +70,7 @@ for node_id, node in data.items():
 # Task Status Dictionary
 # ────────────────────────────────
 status = {node_id: "pending" for node_id in data}
+status_lock = threading.Lock()
 
 # ────────────────────────────────
 # Process Tracking for SIGTERM/INT
@@ -113,9 +114,13 @@ if hasattr(signal, 'SIGHUP'):
 def run_task(node_id):
     data_log = {"command": "", "status": "running", "stdout": "", "error": "", "pid": ""}
     node = data[node_id]
-    cmd = command_replacement(node["data"]["command"], node)
+    cmd = command_replacement(node["data"].get("command", ""), node)
 
-    
+    # set status running secara atomik
+    with status_lock:
+        status[node_id] = "running"
+        data[node_id]['data']['status'] = "running"
+
     proc = subprocess.Popen(
         cmd,
         shell=True,
@@ -131,24 +136,27 @@ def run_task(node_id):
     data_log['command'] = cmd
     data_log['status'] = "running"
     data_log['pid'] = proc.pid
-    # print(f"Running {node['data']['name']} ({cmd})")
     create_process_log(node_id, data_log)
 
     stdout, stderr = proc.communicate()
+
     with running_procs_lock:
         if proc in running_procs:
             running_procs.remove(proc)
-    status[node_id] = "finished"
-    # print(f" finished: {node['data']['name']}")
 
-    # Log finished state
-    if stderr:
-        data_log['error'] = stderr
-        data_log['status'] = "failed"
-    else:
-        data_log['error'] = None
-        data_log['status'] = "finished"
-    
+    # update status akhir secara atomik
+    with status_lock:
+        if stderr:
+            status[node_id] = "failed"
+            data_log['status'] = "failed"
+            data[node_id]['data']['status'] = "failed"
+            data_log['error'] = stderr
+        else:
+            status[node_id] = "finished"
+            data_log['status'] = "finished"
+            data[node_id]['data']['status'] = "finished"
+            data_log['error'] = None
+
     if args.debug:
         data_log['stdout'] = stdout
     else:
@@ -157,26 +165,35 @@ def run_task(node_id):
     data_log['pid'] = None
     create_process_log(node_id, data_log)
 
+    # trigger next (diluar lock untuk menghindari deadlock)
     trigger_next(node_id)
+
 
 # ────────────────────────────────
 # Trigger Child Tasks
 # ────────────────────────────────
 def trigger_next(finished_id):
-    for child in graph[finished_id]:
+    for child in graph.get(finished_id, []):
         wait_flag = data[child]["data"].get("wait", False)
         all_parents = parents.get(child, [])
 
         if wait_flag:
-            # Wait for all root-level tasks to finish
-            parent_level = [pid for pid in data if not parents.get(pid)]
-            if all(status[p] == "finished" for p in parent_level):
-                if status[child] == "pending":
+            # tunggu semua parent spesifik dari child selesai
+            with status_lock:
+                parents_done = all(status.get(p) == "finished" for p in all_parents)
+                if parents_done and status.get(child) == "pending":
+                    # mark running immediately untuk mencegah double-start
+                    status[child] = "running"
+                    data[child]['data']['status'] = "running"
                     threading.Thread(target=run_task, args=(child,)).start()
         else:
-            # Start if any parent finished and task still pending
-            if status[child] == "pending":
-                threading.Thread(target=run_task, args=(child,)).start()
+            # normal: kalau masih pending, start (parent yang memicu sudah selesai)
+            with status_lock:
+                if status.get(child) == "pending":
+                    status[child] = "running"
+                    data[child]['data']['status'] = "running"
+                    threading.Thread(target=run_task, args=(child,)).start()
+
 
 # ────────────────────────────────
 # Command Replacement
